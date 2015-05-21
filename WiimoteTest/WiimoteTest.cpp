@@ -118,12 +118,15 @@ void WriteToDevice(HANDLE device_io, PHIDP_PREPARSED_DATA preparsed_data, HIDP_C
 	DWORD num_bytes_written;
 	char* pkt = new char[65];
 	ZeroMemory(pkt, 65);
+	/*
 	if (!WriteFile(device_io, msg, 22, NULL, &async_overlap)) {
 		//if (!WriteFile(device_io, status_request, 22, &num_bytes_written, NULL)) {
 		reportLastError(L"ATTEMPTING WRITE");
 	}
+	WaitForSingleObject(writeEvent, INFINITE);*/
 
-	WaitForSingleObject(writeEvent, INFINITE);
+	HidD_SetOutputReport(device_io, msg, 22);
+
 	reportLastError(L"WAITING FOR WRITE");
 	ResetEvent(writeEvent);
 	reportLastError(L"RESETTING EVENT");
@@ -210,7 +213,7 @@ int _tmain(int argc, _TCHAR* argv[])
 							HIDP_CAPS device_capabilities;
 							NTSTATUS get_caps_err = HidP_GetCaps(preparsed_data, &device_capabilities);
 
-							//WriteToDevice(device_file, preparsed_data, device_capabilities, core_buttons);
+							WriteToDevice(device_file, preparsed_data, device_capabilities, core_buttons);
 							//WriteToDevice(device_file, preparsed_data, device_capabilities, set_leds);
 							while (true) {
 								WriteToDevice(device_file, preparsed_data, device_capabilities, status_request);
