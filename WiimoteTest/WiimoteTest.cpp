@@ -4,88 +4,17 @@
 #include "stdafx.h"
 #include <iostream>
 
-PBLUETOOTH_DEVICE_INFO selectDevice() {
-	BLUETOOTH_SELECT_DEVICE_PARAMS dev_sel;
+#include <thread>
+#include <mutex>
 
-	ZeroMemory(&dev_sel, sizeof(dev_sel));
-	dev_sel.dwSize = sizeof(dev_sel);
-	dev_sel.cNumOfClasses = 0;
-	dev_sel.prgClassOfDevices = NULL;
-	dev_sel.pszInfo = L"HELLO!";
-	dev_sel.hwndParent = NULL;
-	dev_sel.fForceAuthentication = FALSE;
-	dev_sel.fShowAuthenticated = TRUE;
-	dev_sel.fShowRemembered = TRUE;
-	dev_sel.fShowUnknown = TRUE;
-	dev_sel.fAddNewDeviceWizard = FALSE;
-	dev_sel.fSkipServicesPage = FALSE;
-	dev_sel.pfnDeviceCallback = NULL;
-	dev_sel.pvParam = NULL;
-	dev_sel.cNumDevices = 1;
-	dev_sel.pDevices = NULL;
+#include <vector>
 
-	bool selectSuccess = BluetoothSelectDevices(&dev_sel);
+#include "ErrorReporting.h"
+#include "WiimoteHandler.h"
 
-	if (selectSuccess) {
-		return dev_sel.pDevices;
-	} else {
-		return NULL;
-	}
-}
-
-void connectToDevice(BLUETOOTH_DEVICE_INFO device) {
-	SOCKADDR_BTH device_address;
-	device_address.addressFamily = AF_BTH;
-	GUID hid_guid;
-	HidD_GetHidGuid(&hid_guid);
-	device_address.serviceClassId = hid_guid;
-	device_address.port = 0;
-	device_address.btAddr = device.Address.ullLong;
-
-
-}
-
-bool reportLastError(wchar_t* prepend_msg, DWORD expected_result) {
-	DWORD errcode = GetLastError();
-	wchar_t msgout[512];
-	if (errcode != expected_result) {
-		FormatMessage(
-			FORMAT_MESSAGE_FROM_SYSTEM,
-			NULL,
-			errcode,
-			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-			msgout,
-			511,
-			NULL);
-		wprintf(L"%s: %s", prepend_msg, msgout);
-		return false;
-	}
-	return true;
-}
-
-bool reportLastError(wchar_t* prepend_msg) {
-	return reportLastError(prepend_msg, 0);
-}
-
-std::string reportHIDStatus(NTSTATUS instatus) {
-	switch (instatus) {
-	case HIDP_STATUS_SUCCESS:
-		return "HIDP_STATUS_SUCCESS";
-	case HIDP_STATUS_INVALID_PREPARSED_DATA:
-		return "HIDP_STATUS_INVALID_PREPARSED_DATA";
-	case HIDP_STATUS_INVALID_REPORT_LENGTH:
-		return "HIDP_STATUS_INVALID_REPORT_LENGTH";
-	case HIDP_STATUS_INVALID_REPORT_TYPE:
-		return "HIDP_STATUS_INVALID_REPORT_TYPE";
-	case HIDP_STATUS_REPORT_DOES_NOT_EXIST:
-		return "HIDP_STATUS_REPORT_DOES_NOT_EXIST";
-	}
-	return "UNKNOWN";
-}
-
-char status_request[22] = { 0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-char set_leds[22] = { 0x11, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-char core_buttons[22] = { 0x12, 0x00, 0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+unsigned char status_request[22] = { 0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+unsigned char set_leds[22] = { 0x11, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+unsigned char core_buttons[22] = { 0x12, 0x00, 0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
 void DumpReport(unsigned char* buffer, int length) {
 	std::cout << std::hex;
@@ -174,8 +103,9 @@ unsigned char* ReadFromDevice(HANDLE device_io, PHIDP_PREPARSED_DATA preparsed_d
 USHORT wiimoteVendorID = 0x057e;
 USHORT wiimoteProductID = 0x0306;
 
-int _tmain(int argc, _TCHAR* argv[])
-{
+std::vector<HANDLE> GetMatchingHandles(USHORT matchedVID, USHORT matchedPID) {
+	std::vector<HANDLE> handles;
+
 	GUID hid_guid;
 	HidD_GetHidGuid(&hid_guid);
 	HWND fict_parent = 0;
@@ -183,72 +113,61 @@ int _tmain(int argc, _TCHAR* argv[])
 	SP_DEVICE_INTERFACE_DATA device_data;
 	ZeroMemory(&device_data, sizeof(device_data));
 	device_data.cbSize = sizeof(device_data);
-
-	int errcnt = 0;
-	int succnt = 0;
-	int foundcnt = 0;
-
+	//device_data.cbSize = 5;
 	DWORD device_interface_index = 0;
 	while (SetupDiEnumDeviceInterfaces(device_info, NULL, &hid_guid, device_interface_index, &device_data)) {
-		SP_DEVICE_INTERFACE_DETAIL_DATA device_detail;
-		ZeroMemory(&device_detail, sizeof(device_detail));
-		device_detail.cbSize = sizeof(device_detail);
-		//device_detail.cbSize = 5;
-		reportLastError(L"DEV DETAIL CREATED");
-
 		DWORD device_detail_size = 0;
 		SetupDiGetDeviceInterfaceDetail(device_info, &device_data, NULL, 0, &device_detail_size, NULL);
 		reportLastError(L"DEVICE DETAIL SIZE GET", ERROR_INSUFFICIENT_BUFFER);
-		if (SetupDiGetDeviceInterfaceDetail(device_info, &device_data, &device_detail, device_detail_size, &device_detail_size, NULL)) {
+		
+		int total_device_detail_size = FIELD_OFFSET(SP_DEVICE_INTERFACE_DETAIL_DATA, DevicePath[device_detail_size]);
+		PSP_DEVICE_INTERFACE_DETAIL_DATA device_detail = (PSP_DEVICE_INTERFACE_DETAIL_DATA)::operator new(total_device_detail_size);
+		ZeroMemory(device_detail, total_device_detail_size);
+		device_detail->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
+		reportLastError(L"DEV DETAIL CREATED");
+		
+		if (SetupDiGetDeviceInterfaceDetail(device_info, &device_data, device_detail, device_detail_size, &device_detail_size, NULL)) {
 			reportLastError(L"DEVICE DETAIL GET");
-			HANDLE device_file = CreateFile(device_detail.DevicePath, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
-			//HANDLE device_file = CreateFile(device_detail.DevicePath, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, NULL, NULL);
+			HANDLE device_file = CreateFile(device_detail->DevicePath, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
 			if (reportLastError(L"OPEN DEVICE FILE")) {
 				HIDD_ATTRIBUTES device_attrib;
 				if (HidD_GetAttributes(device_file, &device_attrib)) {
-					succnt++;
-					if (device_attrib.VendorID == wiimoteVendorID && device_attrib.ProductID == wiimoteProductID) {
-						PHIDP_PREPARSED_DATA preparsed_data;
-						if (HidD_GetPreparsedData(device_file, &preparsed_data)) {
-							HIDP_CAPS device_capabilities;
-							NTSTATUS get_caps_err = HidP_GetCaps(preparsed_data, &device_capabilities);
-
-							WriteToDevice(device_file, preparsed_data, device_capabilities, core_buttons);
-							//WriteToDevice(device_file, preparsed_data, device_capabilities, set_leds);
-							while (true) {
-								WriteToDevice(device_file, preparsed_data, device_capabilities, status_request);
-								unsigned char* read_in = ReadFromDevice(device_file, preparsed_data, device_capabilities);
-								/*if (!HidD_SetOutputReport(device_file, status_request, 3)) {
-									reportLastError(L"ERROR SETTING OUTPUT REPORT");
-									std::cout << "ERROR SETTING OUTPUT REPORT" << std::endl;
-									}*/
-								DumpReport(read_in, 22);
-								std::cin.get();
-								//WriteToDevice(device_file, preparsed_data, device_capabilities, set_leds);
-							}
-							foundcnt++;
-						} else {
-							reportLastError(L"Getting preparsed data");
-							errcnt++;
-						}
+					std::cout << "HI" << std::endl;
+					if (device_attrib.VendorID == matchedVID && device_attrib.ProductID == matchedPID) {
+						handles.push_back(device_file);
 					}
-				} else {
-					reportLastError(L"GET DEVICE ATTRIBUTES");
-					errcnt++;
 				}
-			} else {
-				errcnt++;
+				else {
+					reportLastError(L"GET DEVICE ATTRIBUTES");
+				}
 			}
-		} else {
-			reportLastError(L"DEVICE DETAIL GET");
-			errcnt++;
 		}
-
+		else {
+			//reportLastError(L"DEVICE DETAIL GET");
+		}
 		device_interface_index++;
 	}
-
-	std::cout << foundcnt << " " << succnt << " " << errcnt << std::endl;
-
-	return 0;
+	reportLastError(L"ENUMERATING DEVICE INTERFACES");
+	return handles;
 }
 
+void dumpstuff(const WiimoteHandler& wiimote) {
+	while (true) {
+		//std::cout << "HEY" << std::endl;
+	}
+}
+
+int _tmain(int argc, _TCHAR* argv[]) {
+	WiimoteHandler wiimote;
+	std::thread dumpthread(&dumpstuff, wiimote);
+	dumpthread.detach();
+
+	std::vector<HANDLE> wiimote_handles = GetMatchingHandles(wiimoteVendorID, wiimoteProductID);
+	wiimote.SetPipe(wiimote_handles[0]);
+	wiimote.SendOutputReport(core_buttons);
+	wiimote.WatchForInputReports();
+
+
+	//return oldmain(argc, argv);
+	return 0;
+}
