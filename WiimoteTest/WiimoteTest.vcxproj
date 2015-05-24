@@ -143,13 +143,18 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Acceleration.h" />
+    <ClInclude Include="ButtonState.h" />
     <ClInclude Include="ErrorReporting.h" />
     <ClInclude Include="InputReport.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="WiimoteEnums.h" />
     <ClInclude Include="WiimoteHandler.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Acceleration.cpp" />
+    <ClCompile Include="ButtonState.cpp" />
     <ClCompile Include="ErrorReporting.cpp" />
     <ClCompile Include="InputReport.cpp" />
     <ClCompile Include="stdafx.cpp">

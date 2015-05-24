@@ -46,6 +46,11 @@ public:
 	 */
 	void SendOutputReport(unsigned char* buffer);
 
+	/**
+	 * Initializes the IR camera
+	 */
+	void ActivateIRCamera();
+
 private:
 	HANDLE pipe;
 	PHIDP_PREPARSED_DATA preparsed_data;
