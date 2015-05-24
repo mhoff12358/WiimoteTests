@@ -144,6 +144,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Acceleration.h" />
+    <ClInclude Include="BitHelpers.h" />
     <ClInclude Include="ButtonState.h" />
     <ClInclude Include="ErrorReporting.h" />
     <ClInclude Include="InputReport.h" />
@@ -154,6 +155,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Acceleration.cpp" />
+    <ClCompile Include="BitHelpers.cpp" />
     <ClCompile Include="ButtonState.cpp" />
     <ClCompile Include="ErrorReporting.cpp" />
     <ClCompile Include="InputReport.cpp" />

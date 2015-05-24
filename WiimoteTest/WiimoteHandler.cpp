@@ -1,7 +1,9 @@
 #include "WiimoteHandler.h"
 
 WiimoteHandler::WiimoteHandler() {
-
+	acceleration_calibration[0] = 0;
+	acceleration_calibration[1] = 0;
+	acceleration_calibration[2] = 0;
 }
 
 void WiimoteHandler::SetPipe(HANDLE bluetooth_pipe) {
@@ -59,6 +61,9 @@ void WiimoteHandler::HandleInputReport(const InputReport& report) {
 		unsigned int data_error = report.GetDataError();
 		unsigned int data_offset = report.GetDataOffset();
 		unsigned char* data_buffer = report.GetDataPacket(false);
+		if (data_offset == 0x16 || data_offset == 0x20) {
+			CalibrateAccelerometer(data_buffer);
+		}
 		break;
 	}
 	case ACK_OUTPUT_REPORT: {
@@ -66,7 +71,28 @@ void WiimoteHandler::HandleInputReport(const InputReport& report) {
 		unsigned char error = report.GetAckError();
 		break;
 	}
+	case DATA_BUT_ACC_IR10_EXT6: {
+		Acceleration acc = report.GetAcceleration();
+		for (int i = 0; i < 3; i++) {
+			int true_directional_acc = acc.acceleration[i] - acceleration_calibration[i];
+			if (abs(true_directional_acc - gravity_calibration[i]) < 4) {
+				std::cout << i << " UP" << std::endl;
+			} else if (abs(true_directional_acc + gravity_calibration[i]) < 4) {
+				std::cout << i << " DOWN" << std::endl;
+			}
+		}
+		break;
 	}
+	default:
+		report.DumpToStdout();
+		break;
+	}
+}
+
+void WiimoteHandler::CalibrateAccelerometer(unsigned char* calibration_data) {
+	UnpackAccelerationCalibration(calibration_data, acceleration_calibration);
+	UnpackAccelerationCalibration(calibration_data+4, gravity_calibration);
+	for (int i = 0; i < 3; i++) { gravity_calibration[i] -= acceleration_calibration[i]; }
 }
 
 void WiimoteHandler::WatchForInputReports() {

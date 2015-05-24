@@ -4,6 +4,7 @@
 
 #include "InputReport.h"
 #include "ErrorReporting.h"
+#include "BitHelpers.h"
 
 class WiimoteHandler {
 public:
@@ -51,8 +52,16 @@ public:
 	 */
 	void ActivateIRCamera();
 
+	/**
+	 * Handles the accelerometer calibration given the data loaded from memory
+	 */
+	void CalibrateAccelerometer(unsigned char* calibration_data);
+
 private:
 	HANDLE pipe;
 	PHIDP_PREPARSED_DATA preparsed_data;
 	HIDP_CAPS capabilities;
+
+	int acceleration_calibration[3];
+	int gravity_calibration[3];
 };
