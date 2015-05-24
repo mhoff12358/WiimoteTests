@@ -45,14 +45,28 @@ InputReport WiimoteHandler::GatherInputReport() {
 	ZeroMemory(buffer, capabilities.InputReportByteLength);
 	
 	ReadFile(pipe, buffer, capabilities.InputReportByteLength, NULL, &async_overlap);
-	reportLastError(L"ATTEMPTING READ");
+	reportLastError(L"ATTEMPTING READ", ERROR_IO_PENDING);
 	WaitForSingleObject(readEvent, INFINITE);
 
 	return InputReport(buffer, capabilities.InputReportByteLength, true);
 }
 
 void WiimoteHandler::HandleInputReport(const InputReport& report) {
-	report.DumpToStdout();
+	//report.DumpToStdout();
+	switch (report.GetBuffer()[0]) {
+	case READ_MEM_AND_REG: {
+		unsigned int data_size = report.GetDataSize();
+		unsigned int data_error = report.GetDataError();
+		unsigned int data_offset = report.GetDataOffset();
+		unsigned char* data_buffer = report.GetDataPacket(false);
+		break;
+	}
+	case ACK_OUTPUT_REPORT: {
+		unsigned char output_code = report.GetAckOutputReportCode();
+		unsigned char error = report.GetAckError();
+		break;
+	}
+	}
 }
 
 void WiimoteHandler::WatchForInputReports() {

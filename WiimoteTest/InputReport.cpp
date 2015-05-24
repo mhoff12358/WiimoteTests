@@ -10,6 +10,14 @@ InputReport::InputReport(unsigned char* raw_buffer, unsigned int raw_buffer_leng
 	}
 }
 
+InputReport::~InputReport() {
+	delete[] buffer;
+}
+
+unsigned char* InputReport::GetBuffer() const {
+	return buffer;
+}
+
 bool InputReport::GetButtonPressed(ButtonMask button) const {
 	return ((*reinterpret_cast<ButtonMask*>(buffer + 1)) & button) != 0;
 }
@@ -25,6 +33,35 @@ std::vector<bool> InputReport::GetButtonsPressed(const std::vector<ButtonMask>& 
 
 Acceleration InputReport::GetAcceleration() const {
 	return Acceleration(buffer);
+}
+
+unsigned int InputReport::GetDataSize() const {
+	return (buffer[3] & 0xF0) >> 4;
+}
+
+unsigned int InputReport::GetDataError() const {
+	return (buffer[3] & 0x0F);
+}
+
+unsigned int InputReport::GetDataOffset() const {
+	return (buffer[4] << 8) + (buffer[5]);
+}
+
+unsigned char* InputReport::GetDataPacket(bool request_ownership) const {
+	if (!request_ownership) {
+		return buffer + 6;
+	}
+	unsigned char* new_buffer = new unsigned char[16];
+	memcpy(new_buffer, buffer + 6, 16);
+	return new_buffer;
+}
+
+unsigned char InputReport::GetAckOutputReportCode() const {
+	return buffer[3];
+}
+
+unsigned char InputReport::GetAckError() const {
+	return buffer[4];
 }
 
 void InputReport::DumpToStdout() const {
