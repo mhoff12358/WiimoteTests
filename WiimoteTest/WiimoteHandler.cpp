@@ -82,7 +82,7 @@ void WiimoteHandler::HandleInputReport(const InputReport& report) {
 		ButtonState bs = report.GetButtonState();
 		ExtensionState es = report.GetExtensionState();
 		if (has_extension) {
-			if (nunchuck_stick_calibration[0] == -1) {
+			if (nunchuck_stick_calibration[0] == -1 && es.stick_position[0] != 0xFF) {
 				nunchuck_stick_calibration[0] = es.stick_position[0];
 				nunchuck_stick_calibration[1] = es.stick_position[1];
 			}
