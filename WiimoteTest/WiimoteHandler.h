@@ -5,6 +5,7 @@
 #include "InputReport.h"
 #include "ErrorReporting.h"
 #include "BitHelpers.h"
+#include "OutputReport.h"
 
 class WiimoteHandler {
 public:
@@ -46,6 +47,7 @@ public:
 	 * Writes a given output report to the wiimote
 	 */
 	void SendOutputReport(unsigned char* buffer);
+	void SendOutputReport(const OutputReport& buffer);
 
 	/**
 	 * Initializes the IR camera

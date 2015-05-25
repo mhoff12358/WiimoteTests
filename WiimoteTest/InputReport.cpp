@@ -35,6 +35,10 @@ Acceleration InputReport::GetAcceleration() const {
 	return Acceleration(buffer);
 }
 
+IRData InputReport::GetIRData() const {
+	return IRData(buffer);
+}
+
 unsigned int InputReport::GetDataSize() const {
 	return (buffer[3] & 0xF0) >> 4;
 }
@@ -71,7 +75,7 @@ void InputReport::DumpToStdout() const {
 	}
 	std::cout << std::endl;
 	std::cout << std::dec;
-	std::cout << GetButtonPressed(A_MASK) << "\t" << GetButtonPressed(B_MASK) << std::endl;
-	Acceleration acc = GetAcceleration();
-	std::cout << "Acceleration: " << acc.acceleration[0] << "\t" << acc.acceleration[1] << "\t" << acc.acceleration[2] << std::endl;
+	//std::cout << GetButtonPressed(A_MASK) << "\t" << GetButtonPressed(B_MASK) << std::endl;
+	//Acceleration acc = GetAcceleration();
+	//std::cout << "Acceleration: " << acc.acceleration[0] << "\t" << acc.acceleration[1] << "\t" << acc.acceleration[2] << std::endl;
 }

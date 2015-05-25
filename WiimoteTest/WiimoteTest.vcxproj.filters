@@ -45,6 +45,12 @@
     <ClInclude Include="BitHelpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="OutputReport.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IRData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -69,6 +75,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="BitHelpers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OutputReport.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IRData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

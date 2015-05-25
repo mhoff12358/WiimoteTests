@@ -73,14 +73,22 @@ void WiimoteHandler::HandleInputReport(const InputReport& report) {
 	}
 	case DATA_BUT_ACC_IR10_EXT6: {
 		Acceleration acc = report.GetAcceleration();
+		IRData ird = report.GetIRData();
 		for (int i = 0; i < 3; i++) {
+			/*
 			int true_directional_acc = acc.acceleration[i] - acceleration_calibration[i];
 			if (abs(true_directional_acc - gravity_calibration[i]) < 4) {
 				std::cout << i << " UP" << std::endl;
 			} else if (abs(true_directional_acc + gravity_calibration[i]) < 4) {
 				std::cout << i << " DOWN" << std::endl;
 			}
+			*/
 		}
+		for (int i = 0; i < 4; i++) {
+			std::cout << ird.points[i].point[0] << ", " << ird.points[i].point[1] << "\t";
+		}
+		std::cout << std::endl;
+		//report.DumpToStdout();
 		break;
 	}
 	default:
@@ -95,10 +103,30 @@ void WiimoteHandler::CalibrateAccelerometer(unsigned char* calibration_data) {
 	for (int i = 0; i < 3; i++) { gravity_calibration[i] -= acceleration_calibration[i]; }
 }
 
+void WiimoteHandler::ActivateIRCamera() {
+	SendOutputReport(OutputReportTemplates::ir_enable_1);
+	Sleep(75);
+	SendOutputReport(OutputReportTemplates::ir_enable_2);
+	Sleep(75);
+	SendOutputReport(ConstructMemoryWrite(true, 0xb00030, 0x08).buffer);
+	Sleep(75);
+	SendOutputReport(ConstructMemoryWrite(true, 0xb00000, 9, OutputReportTemplates::sensitivity_block1).buffer);
+	Sleep(75);
+	SendOutputReport(ConstructMemoryWrite(true, 0xb0001a, 2, OutputReportTemplates::sensitivity_block2).buffer);
+	Sleep(75);
+	SendOutputReport(ConstructMemoryWrite(true, 0xb00033, 0x1).buffer);
+	Sleep(75);
+	SendOutputReport(ConstructMemoryWrite(true, 0xb00030, 0x08).buffer);
+}
+
 void WiimoteHandler::WatchForInputReports() {
 	while (true) {
 		HandleInputReport(GatherInputReport());
 	}
+}
+
+void WiimoteHandler::SendOutputReport(const OutputReport& report) {
+	SendOutputReport(report.GetBuffer());
 }
 
 void WiimoteHandler::SendOutputReport(unsigned char* buffer) {

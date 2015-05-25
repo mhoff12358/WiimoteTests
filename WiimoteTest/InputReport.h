@@ -3,6 +3,7 @@
 #include "stdafx.h"
 #include "WiimoteEnums.h"
 #include "Acceleration.h"
+#include "IRData.h"
 #include <cstring>
 #include <iostream>
 #include <vector>
@@ -19,6 +20,7 @@ public:
 	std::vector<bool> GetButtonsPressed(const std::vector<ButtonMask>& buttons) const;
 
 	Acceleration GetAcceleration() const;
+	IRData GetIRData() const;
 
 	unsigned char GetInputReportType() const;
 
