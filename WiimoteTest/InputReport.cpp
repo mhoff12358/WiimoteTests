@@ -18,25 +18,20 @@ unsigned char* InputReport::GetBuffer() const {
 	return buffer;
 }
 
-bool InputReport::GetButtonPressed(ButtonMask button) const {
-	return ((*reinterpret_cast<ButtonMask*>(buffer + 1)) & button) != 0;
-}
-
-std::vector<bool> InputReport::GetButtonsPressed(const std::vector<ButtonMask>& buttons) const {
-	std::vector<bool> result;
-	result.resize(buttons.size(), false);
-	for (unsigned int i = 0; i < buttons.size(); i++) {
-		result[i] = GetButtonPressed(buttons[i]);
-	}
-	return result;
-}
-
 Acceleration InputReport::GetAcceleration() const {
-	return Acceleration(buffer);
+	return Acceleration(buffer[0], buffer);
 }
 
 IRData InputReport::GetIRData() const {
 	return IRData(buffer);
+}
+
+ButtonState InputReport::GetButtonState() const {
+	return ButtonState(buffer);
+}
+
+ExtensionState InputReport::GetExtensionState() const {
+	return ExtensionState(buffer[0], buffer);
 }
 
 unsigned int InputReport::GetDataSize() const {

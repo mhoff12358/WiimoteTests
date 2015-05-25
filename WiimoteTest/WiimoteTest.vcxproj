@@ -147,6 +147,7 @@
     <ClInclude Include="BitHelpers.h" />
     <ClInclude Include="ButtonState.h" />
     <ClInclude Include="ErrorReporting.h" />
+    <ClInclude Include="ExtensionState.h" />
     <ClInclude Include="InputReport.h" />
     <ClInclude Include="IRData.h" />
     <ClInclude Include="OutputReport.h" />
@@ -160,6 +161,7 @@
     <ClCompile Include="BitHelpers.cpp" />
     <ClCompile Include="ButtonState.cpp" />
     <ClCompile Include="ErrorReporting.cpp" />
+    <ClCompile Include="ExtensionState.cpp" />
     <ClCompile Include="InputReport.cpp" />
     <ClCompile Include="IRData.cpp" />
     <ClCompile Include="OutputReport.cpp" />

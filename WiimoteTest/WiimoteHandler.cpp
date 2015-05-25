@@ -58,12 +58,7 @@ void WiimoteHandler::HandleInputReport(const InputReport& report) {
 	unsigned char* buffer = report.GetBuffer();
 	switch (buffer[0]) {
 	case STATUS: {
-		bool old_has_extension = has_extension;
-		has_extension = ((buffer[3] & 0x02) != 0);
-		std::cout << has_extension << std::endl;
-		if (has_extension != old_has_extension) {
-			SetWiimoteDataReportingMethod();
-		}
+		SetHasExtension((buffer[3] & 0x02) != 0);
 	}
 	case READ_MEM_AND_REG: {
 		unsigned int data_size = report.GetDataSize();
@@ -78,11 +73,20 @@ void WiimoteHandler::HandleInputReport(const InputReport& report) {
 	case ACK_OUTPUT_REPORT: {
 		unsigned char output_code = report.GetAckOutputReportCode();
 		unsigned char error = report.GetAckError();
+		std::cout << "OUTPUT CODE: " << (unsigned int)output_code << ", " << (unsigned int)error <<  std::endl;
 		break;
 	}
 	case DATA_BUT_ACC_IR10_EXT6: {
 		Acceleration acc = report.GetAcceleration();
 		IRData ird = report.GetIRData();
+		ButtonState bs = report.GetButtonState();
+		ExtensionState es = report.GetExtensionState();
+		if (has_extension) {
+			if (nunchuck_stick_calibration[0] == -1) {
+				nunchuck_stick_calibration[0] = es.stick_position[0];
+				nunchuck_stick_calibration[1] = es.stick_position[1];
+			}
+		}
 		/*
 		for (int i = 0; i < 3; i++) {
 			int true_directional_acc = acc.acceleration[i] - acceleration_calibration[i];
@@ -99,6 +103,8 @@ void WiimoteHandler::HandleInputReport(const InputReport& report) {
 		}
 		std::cout << std::endl;
 		*/
+		std::cout << es.stick_position[0] - nunchuck_stick_calibration[0] << ",\t" << es.stick_position[1] - nunchuck_stick_calibration[1] << std::endl;
+		//std::cout << es.c_pressed << ", " << es.z_pressed << std::endl;
 		//report.DumpToStdout();
 		break;
 	}
@@ -130,6 +136,12 @@ void WiimoteHandler::ActivateIRCamera() {
 	SendOutputReport(ConstructMemoryWrite(true, 0xb00030, 0x08).buffer);
 }
 
+void WiimoteHandler::ActivateExtension() {
+	SendOutputReport(ConstructMemoryWrite(true, 0xA400F0, 0x55).buffer);
+	Sleep(75);
+	SendOutputReport(ConstructMemoryWrite(true, 0xA400FB, 0x00).buffer);
+}
+
 void WiimoteHandler::WatchForInputReports() {
 	while (true) {
 		HandleInputReport(GatherInputReport());
@@ -155,9 +167,24 @@ void WiimoteHandler::SetWiimoteDataReportingMethod() {
 	unsigned char output_report[22];
 	ZeroMemory(output_report, 22);
 	output_report[0] = 0x12;
+	output_report[1] = 0x02;
 	if (continuous_reporting) {
-		output_report[1] = 0x04;
+		output_report[1] |= 0x04;
 	}
 	output_report[2] = current_report_mode;
 	SendOutputReport(output_report);
+}
+
+void WiimoteHandler::SetHasExtension(bool extension_plugged_in) {
+	bool old_has_extension = has_extension;
+	has_extension = extension_plugged_in;
+	std::cout << has_extension << std::endl;
+	if (has_extension != old_has_extension) {
+		SetWiimoteDataReportingMethod();
+	}
+	if (has_extension) {
+		ActivateExtension();
+	}
+
+	for (int i = 0; i < 2; i++) { nunchuck_stick_calibration[i] = -1; }
 }

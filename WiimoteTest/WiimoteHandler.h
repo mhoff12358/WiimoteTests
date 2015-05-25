@@ -55,6 +55,11 @@ public:
 	void ActivateIRCamera();
 
 	/**
+	 * Initializes the extension
+	 */
+	void ActivateExtension();
+
+	/**
 	 * Handles the accelerometer calibration given the data loaded from memory
 	 */
 	void CalibrateAccelerometer(unsigned char* calibration_data);
@@ -69,6 +74,12 @@ public:
 	 */
 	void SetWiimoteDataReportingMethod();
 
+	/**
+	 * Sets whether there is an extension plugged in. Importantly, this has
+	 * internal triggers for getting/clearing extension calibration data
+	 */
+	void SetHasExtension(bool extension_plugged_in);
+
 private:
 	HANDLE pipe;
 	PHIDP_PREPARSED_DATA preparsed_data;
@@ -76,6 +87,8 @@ private:
 
 	int acceleration_calibration[3];
 	int gravity_calibration[3];
+
+	int nunchuck_stick_calibration[2];
 
 	bool has_extension;
 

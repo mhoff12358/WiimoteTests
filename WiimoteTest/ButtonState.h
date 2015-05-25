@@ -1,12 +1,18 @@
 #pragma once
+
+#include "WiimoteEnums.h"
+#include <vector>
+
 class ButtonState
 {
 public:
-	ButtonState(unsigned char* state_buffer);
+	ButtonState(unsigned char* buffer);
 
-	unsigned char* GetState();
+
+	bool GetButtonPressed(ButtonMask button) const;
+	std::vector<bool> GetButtonsPressed(const std::vector<ButtonMask>& buttons) const;
 	
 private:
-	unsigned char buffer[2];
+	unsigned char button_data[2];
 };
 

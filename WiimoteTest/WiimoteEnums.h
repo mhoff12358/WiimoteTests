@@ -16,6 +16,10 @@ enum InputReportType : unsigned char {
 	DATA_INTERLEAVE_1 = 0x3e,
 	DATA_INTERLEAVE_2 = 0x3f,
 	DATA_INTERLEAVE_BOTH = 0x40,
+
+	// These aren't input reports, but they're other types of data reports like
+	// extension controller data.
+	NUNCHUNK = 0x50,
 };
 
 enum ButtonMask : unsigned short {

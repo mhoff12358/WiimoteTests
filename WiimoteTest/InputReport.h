@@ -4,6 +4,8 @@
 #include "WiimoteEnums.h"
 #include "Acceleration.h"
 #include "IRData.h"
+#include "ButtonState.h"
+#include "ExtensionState.h"
 #include <cstring>
 #include <iostream>
 #include <vector>
@@ -16,11 +18,10 @@ public:
 
 	unsigned char* GetBuffer() const;
 
-	bool GetButtonPressed(ButtonMask button) const;
-	std::vector<bool> GetButtonsPressed(const std::vector<ButtonMask>& buttons) const;
-
 	Acceleration GetAcceleration() const;
 	IRData GetIRData() const;
+	ButtonState GetButtonState() const;
+	ExtensionState GetExtensionState() const;
 
 	unsigned char GetInputReportType() const;
 
