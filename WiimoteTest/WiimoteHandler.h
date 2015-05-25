@@ -59,6 +59,16 @@ public:
 	 */
 	void CalibrateAccelerometer(unsigned char* calibration_data);
 
+	/**
+	 * Sets the desired data reporting method that the wiimote should be set to
+	 */
+	void SetDataReportingMethod(unsigned char report_mode, bool continuous);
+
+	/**
+	 * Tells the wiimote to report in the current desired reporting mode
+	 */
+	void SetWiimoteDataReportingMethod();
+
 private:
 	HANDLE pipe;
 	PHIDP_PREPARSED_DATA preparsed_data;
@@ -66,4 +76,9 @@ private:
 
 	int acceleration_calibration[3];
 	int gravity_calibration[3];
+
+	bool has_extension;
+
+	unsigned char current_report_mode;
+	bool continuous_reporting;
 };

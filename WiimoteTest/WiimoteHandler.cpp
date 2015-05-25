@@ -55,7 +55,16 @@ InputReport WiimoteHandler::GatherInputReport() {
 
 void WiimoteHandler::HandleInputReport(const InputReport& report) {
 	//report.DumpToStdout();
-	switch (report.GetBuffer()[0]) {
+	unsigned char* buffer = report.GetBuffer();
+	switch (buffer[0]) {
+	case STATUS: {
+		bool old_has_extension = has_extension;
+		has_extension = ((buffer[3] & 0x02) != 0);
+		std::cout << has_extension << std::endl;
+		if (has_extension != old_has_extension) {
+			SetWiimoteDataReportingMethod();
+		}
+	}
 	case READ_MEM_AND_REG: {
 		unsigned int data_size = report.GetDataSize();
 		unsigned int data_error = report.GetDataError();
@@ -74,20 +83,22 @@ void WiimoteHandler::HandleInputReport(const InputReport& report) {
 	case DATA_BUT_ACC_IR10_EXT6: {
 		Acceleration acc = report.GetAcceleration();
 		IRData ird = report.GetIRData();
+		/*
 		for (int i = 0; i < 3; i++) {
-			/*
 			int true_directional_acc = acc.acceleration[i] - acceleration_calibration[i];
 			if (abs(true_directional_acc - gravity_calibration[i]) < 4) {
 				std::cout << i << " UP" << std::endl;
 			} else if (abs(true_directional_acc + gravity_calibration[i]) < 4) {
 				std::cout << i << " DOWN" << std::endl;
 			}
-			*/
 		}
+		*/
+		/*
 		for (int i = 0; i < 4; i++) {
 			std::cout << ird.points[i].point[0] << ", " << ird.points[i].point[1] << "\t";
 		}
 		std::cout << std::endl;
+		*/
 		//report.DumpToStdout();
 		break;
 	}
@@ -131,4 +142,22 @@ void WiimoteHandler::SendOutputReport(const OutputReport& report) {
 
 void WiimoteHandler::SendOutputReport(unsigned char* buffer) {
 	HidD_SetOutputReport(pipe, buffer, capabilities.OutputReportByteLength);
+}
+
+
+void WiimoteHandler::SetDataReportingMethod(unsigned char report_mode, bool continuous) {
+	current_report_mode = report_mode;
+	continuous_reporting = continuous;
+	SetWiimoteDataReportingMethod();
+}
+
+void WiimoteHandler::SetWiimoteDataReportingMethod() {
+	unsigned char output_report[22];
+	ZeroMemory(output_report, 22);
+	output_report[0] = 0x12;
+	if (continuous_reporting) {
+		output_report[1] = 0x04;
+	}
+	output_report[2] = current_report_mode;
+	SendOutputReport(output_report);
 }

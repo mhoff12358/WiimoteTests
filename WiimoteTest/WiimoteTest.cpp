@@ -169,7 +169,7 @@ int _tmain(int argc, _TCHAR* argv[]) {
 	wiimote.ActivateIRCamera();
 	wiimote.SendOutputReport(OutputReportTemplates::status_request);
 	wiimote.SendOutputReport(OutputReportTemplates::set_leds);
-	wiimote.SendOutputReport(OutputReportTemplates::acc_ir_ext);
+	wiimote.SetDataReportingMethod(0x37, false);
 	wiimote.SendOutputReport(OutputReportTemplates::request_calibration);
 	wiimote.WatchForInputReports();
 
