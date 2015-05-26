@@ -20,7 +20,15 @@ enum InputReportType : unsigned char {
 	// These aren't input reports, but they're other types of data reports like
 	// extension controller data.
 	NUNCHUNK = 0x50,
+	NUNCHUCK_INTERLEAVE = 0x51,
+	MOTION_PLUS = 0x52,
+	MOTION_PLUS_INTERLEAVE = 0x53,
 };
+
+int GetButtonOffset(InputReportType report_type);
+int GetAccelerationOffset(InputReportType report_type);
+int GetExtensionOffset(InputReportType report_type);
+int GetIROffset(InputReportType report_type);
 
 enum ButtonMask : unsigned short {
 	LEFT_MASK = 0x0001,

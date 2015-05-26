@@ -156,21 +156,20 @@ void dumpstuff(const WiimoteHandler& wiimote) {
 
 int _tmain(int argc, _TCHAR* argv[]) {
 	WiimoteHandler wiimote;
-	std::thread dumpthread(&dumpstuff, wiimote);
-	dumpthread.detach();
+	//std::thread dumpthread(&dumpstuff, wiimote);
+	//dumpthread.detach();
 
 	std::vector<HANDLE> wiimote_handles = GetMatchingHandles(wiimoteVendorID, wiimoteProductID);
 	if (wiimote_handles.size() < 1) {
 		return 1;
 	}
 	wiimote.SetPipe(wiimote_handles[0]);
-	//wiimote.SendOutputReport(OutputReportTemplates::ir_enable_1);
-	//wiimote.SendOutputReport(OutputReportTemplates::ir_enable_2);
 	wiimote.ActivateIRCamera();
 	wiimote.SendOutputReport(OutputReportTemplates::status_request);
 	wiimote.SendOutputReport(OutputReportTemplates::set_leds);
 	wiimote.SetDataReportingMethod(0x37, false);
-	wiimote.SendOutputReport(OutputReportTemplates::request_calibration);
+	//wiimote.SendOutputReport(OutputReportTemplates::request_calibration);
+	wiimote.CheckForMotionPlus();
 	wiimote.WatchForInputReports();
 
 

@@ -5,7 +5,8 @@
 #include "Acceleration.h"
 #include "IRData.h"
 #include "ButtonState.h"
-#include "ExtensionState.h"
+#include "NunchuckState.h"
+#include "MotionPlusState.h"
 #include <cstring>
 #include <iostream>
 #include <vector>
@@ -21,7 +22,8 @@ public:
 	Acceleration GetAcceleration() const;
 	IRData GetIRData() const;
 	ButtonState GetButtonState() const;
-	ExtensionState GetExtensionState() const;
+	NunchuckState GetNunchuckState() const;
+	MotionPlusState GetMotionPlusState() const;
 
 	unsigned char GetInputReportType() const;
 

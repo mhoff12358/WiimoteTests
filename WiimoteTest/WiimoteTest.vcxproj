@@ -147,7 +147,8 @@
     <ClInclude Include="BitHelpers.h" />
     <ClInclude Include="ButtonState.h" />
     <ClInclude Include="ErrorReporting.h" />
-    <ClInclude Include="ExtensionState.h" />
+    <ClInclude Include="MotionPlusState.h" />
+    <ClInclude Include="NunchuckState.h" />
     <ClInclude Include="InputReport.h" />
     <ClInclude Include="IRData.h" />
     <ClInclude Include="OutputReport.h" />
@@ -161,7 +162,8 @@
     <ClCompile Include="BitHelpers.cpp" />
     <ClCompile Include="ButtonState.cpp" />
     <ClCompile Include="ErrorReporting.cpp" />
-    <ClCompile Include="ExtensionState.cpp" />
+    <ClCompile Include="MotionPlusState.cpp" />
+    <ClCompile Include="NunchuckState.cpp" />
     <ClCompile Include="InputReport.cpp" />
     <ClCompile Include="IRData.cpp" />
     <ClCompile Include="OutputReport.cpp" />
@@ -171,6 +173,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="WiimoteEnums.cpp" />
     <ClCompile Include="WiimoteHandler.cpp" />
     <ClCompile Include="WiimoteTest.cpp" />
   </ItemGroup>

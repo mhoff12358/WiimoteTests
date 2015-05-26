@@ -19,6 +19,7 @@ private:
 OutputReportBuffer ConstructMemoryWrite(bool use_registers, unsigned int offset, unsigned int size, unsigned char* data);
 OutputReportBuffer ConstructMemoryWrite(bool use_registers, unsigned int offset, unsigned char single_data_byte);
 
+OutputReportBuffer ConstructMemoryRead(bool use_registers, unsigned int offset, unsigned int size);
 
 namespace OutputReportTemplates {
 	extern unsigned char status_request[22];

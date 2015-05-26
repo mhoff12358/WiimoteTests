@@ -7,7 +7,7 @@ class ButtonState
 {
 public:
 	ButtonState(unsigned char* buffer);
-
+	ButtonState();
 
 	bool GetButtonPressed(ButtonMask button) const;
 	std::vector<bool> GetButtonsPressed(const std::vector<ButtonMask>& buttons) const;

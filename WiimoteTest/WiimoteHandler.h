@@ -7,6 +7,14 @@
 #include "BitHelpers.h"
 #include "OutputReport.h"
 
+struct WiimoteState {
+	Acceleration acceleration;
+	IRData ir_data;
+	ButtonState button_state;
+	NunchuckState nunchuck_state;
+
+};
+
 class WiimoteHandler {
 public:
 	WiimoteHandler();
@@ -55,9 +63,14 @@ public:
 	void ActivateIRCamera();
 
 	/**
-	 * Initializes the extension
+	 * Initializes the non-motion plus extension
 	 */
 	void ActivateExtension();
+
+	/**
+	 * Initializes the wii motion plus that should be attached
+	 */
+	void ActivateWiiMotionPlus();
 
 	/**
 	 * Handles the accelerometer calibration given the data loaded from memory
@@ -80,6 +93,13 @@ public:
 	 */
 	void SetHasExtension(bool extension_plugged_in);
 
+	/**
+	 * Checks the registers for the location of the wii motion plus. This
+	 * doesn't actually receive the response, its up to HanldeInputReport to do
+	 * that.
+	 */
+	void CheckForMotionPlus();
+
 private:
 	HANDLE pipe;
 	PHIDP_PREPARSED_DATA preparsed_data;
@@ -91,7 +111,11 @@ private:
 	int nunchuck_stick_calibration[2];
 
 	bool has_extension;
+	bool has_motion_plus;
 
 	unsigned char current_report_mode;
 	bool continuous_reporting;
+
+	// Current state storage
+	WiimoteState current_state;
 };

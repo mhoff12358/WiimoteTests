@@ -1,6 +1,13 @@
 #include "stdafx.h"
 #include "IRData.h"
 
+IRData::IRData() {
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 2; j++) {
+			points[i].point[j] = -1;
+		}
+	}
+}
 
 IRData::IRData(unsigned char* buffer)
 {

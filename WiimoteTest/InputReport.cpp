@@ -30,8 +30,12 @@ ButtonState InputReport::GetButtonState() const {
 	return ButtonState(buffer);
 }
 
-ExtensionState InputReport::GetExtensionState() const {
-	return ExtensionState(buffer[0], buffer);
+NunchuckState InputReport::GetNunchuckState() const {
+	return NunchuckState(NUNCHUNK, buffer+GetExtensionOffset((InputReportType)buffer[0]));
+}
+
+MotionPlusState InputReport::GetMotionPlusState() const {
+	return MotionPlusState(MOTION_PLUS, buffer + GetExtensionOffset((InputReportType)buffer[0]));
 }
 
 unsigned int InputReport::GetDataSize() const {

@@ -3,11 +3,12 @@
 #include "Acceleration.h"
 #include <iostream>
 
-class ExtensionState
+class NunchuckState
 {
 public:
-	ExtensionState(unsigned char buffer_type, unsigned char* buffer);
-	~ExtensionState();
+	NunchuckState(unsigned char buffer_type, unsigned char* extension_buffer);
+	NunchuckState();
+	~NunchuckState();
 
 	unsigned char stick_position[2];
 	Acceleration acceleration;

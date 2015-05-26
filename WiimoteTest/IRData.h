@@ -10,6 +10,7 @@ class IRData
 {
 public:
 	IRData(unsigned char* buffer);
+	IRData();
 	~IRData();
 
 	IRPoint points[4];

@@ -51,7 +51,10 @@
     <ClInclude Include="IRData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ExtensionState.h">
+    <ClInclude Include="NunchuckState.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MotionPlusState.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -86,7 +89,13 @@
     <ClCompile Include="IRData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ExtensionState.cpp">
+    <ClCompile Include="NunchuckState.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MotionPlusState.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WiimoteEnums.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

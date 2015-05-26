@@ -32,7 +32,6 @@ OutputReportBuffer ConstructMemoryWrite(bool use_registers, unsigned int offset,
 	// Only copy the 3 least significant bytes from the offset
 	unsigned int net_offset = htonl(offset);
 	unsigned int net_size = htonl(size);
-	unsigned char a, b, c, d;
 	memcpy(result.buffer + 2, reinterpret_cast<unsigned char*>(&net_offset) + 1, 3);
 	// Only copy the 1 least significan byte from the size
 	memcpy(result.buffer + 5, reinterpret_cast<unsigned char*>(&net_size) + 3, 1);
@@ -43,6 +42,22 @@ OutputReportBuffer ConstructMemoryWrite(bool use_registers, unsigned int offset,
 
 OutputReportBuffer ConstructMemoryWrite(bool use_registers, unsigned int offset, unsigned char single_data_byte) {
 	return ConstructMemoryWrite(use_registers, offset, 1, &single_data_byte);
+}
+
+OutputReportBuffer ConstructMemoryRead(bool use_registers, unsigned int offset, unsigned int size) {
+	OutputReportBuffer result;
+	ZeroMemory(result.buffer, 22);
+	result.buffer[0] = 0x17;
+	if (use_registers) {
+		result.buffer[1] |= 0x04;
+	}
+	// Only copy the 3 least significant bytes from the offset
+	unsigned int net_offset = htonl(offset);
+	unsigned int net_size = htonl(size);
+	memcpy(result.buffer + 2, reinterpret_cast<unsigned char*>(&net_offset) + 1, 3);
+	// Only copy the 1 least significan byte from the size
+	memcpy(result.buffer + 5, reinterpret_cast<unsigned char*>(&net_size) + 2, 2);
+	return result;
 }
 
 namespace OutputReportTemplates {

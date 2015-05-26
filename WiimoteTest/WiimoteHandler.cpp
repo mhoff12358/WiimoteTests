@@ -4,6 +4,7 @@ WiimoteHandler::WiimoteHandler() {
 	acceleration_calibration[0] = 0;
 	acceleration_calibration[1] = 0;
 	acceleration_calibration[2] = 0;
+	has_motion_plus = false;
 }
 
 void WiimoteHandler::SetPipe(HANDLE bluetooth_pipe) {
@@ -59,6 +60,8 @@ void WiimoteHandler::HandleInputReport(const InputReport& report) {
 	switch (buffer[0]) {
 	case STATUS: {
 		SetHasExtension((buffer[3] & 0x02) != 0);
+		report.DumpToStdout();
+		break;
 	}
 	case READ_MEM_AND_REG: {
 		unsigned int data_size = report.GetDataSize();
@@ -67,7 +70,11 @@ void WiimoteHandler::HandleInputReport(const InputReport& report) {
 		unsigned char* data_buffer = report.GetDataPacket(false);
 		if (data_offset == 0x16 || data_offset == 0x20) {
 			CalibrateAccelerometer(data_buffer);
+		} else if (data_offset == 0xFA) { // Sorta implies a motion plus data request
+			ActivateWiiMotionPlus();
+			std::cout << "EXTENSION GET THINGS" << std::endl;
 		}
+		report.DumpToStdout();
 		break;
 	}
 	case ACK_OUTPUT_REPORT: {
@@ -80,7 +87,10 @@ void WiimoteHandler::HandleInputReport(const InputReport& report) {
 		Acceleration acc = report.GetAcceleration();
 		IRData ird = report.GetIRData();
 		ButtonState bs = report.GetButtonState();
-		ExtensionState es = report.GetExtensionState();
+		NunchuckState es = report.GetNunchuckState();
+		MotionPlusState mps = report.GetMotionPlusState();
+		// Needs to be modified so it detects nunchuck information, as
+		// has_extension also detects the motion plus
 		if (has_extension) {
 			if (nunchuck_stick_calibration[0] == -1 && es.stick_position[0] != 0xFF) {
 				nunchuck_stick_calibration[0] = es.stick_position[0];
@@ -103,8 +113,12 @@ void WiimoteHandler::HandleInputReport(const InputReport& report) {
 		}
 		std::cout << std::endl;
 		*/
-		std::cout << es.stick_position[0] - nunchuck_stick_calibration[0] << ",\t" << es.stick_position[1] - nunchuck_stick_calibration[1] << std::endl;
-		//std::cout << es.c_pressed << ", " << es.z_pressed << std::endl;
+		/*
+		if (has_extension) {
+			std::cout << es.stick_position[0] - nunchuck_stick_calibration[0] << ",\t" << es.stick_position[1] - nunchuck_stick_calibration[1] << std::endl;
+		}
+		*/
+		std::cout << mps.rotation[0] << std::endl;
 		//report.DumpToStdout();
 		break;
 	}
@@ -140,6 +154,17 @@ void WiimoteHandler::ActivateExtension() {
 	SendOutputReport(ConstructMemoryWrite(true, 0xA400F0, 0x55).buffer);
 	Sleep(75);
 	SendOutputReport(ConstructMemoryWrite(true, 0xA400FB, 0x00).buffer);
+}
+
+void WiimoteHandler::ActivateWiiMotionPlus() {
+	has_motion_plus = true;
+	SendOutputReport(ConstructMemoryWrite(true, 0xA600F0, 0x55).buffer);
+	Sleep(75);
+	SendOutputReport(ConstructMemoryWrite(true, 0xA600FE, 0x04).buffer);
+}
+
+void WiimoteHandler::CheckForMotionPlus() {
+	SendOutputReport(ConstructMemoryRead(true, 0xA600FA, 6).buffer);
 }
 
 void WiimoteHandler::WatchForInputReports() {
@@ -182,7 +207,7 @@ void WiimoteHandler::SetHasExtension(bool extension_plugged_in) {
 	if (has_extension != old_has_extension) {
 		SetWiimoteDataReportingMethod();
 	}
-	if (has_extension) {
+	if (has_extension && !has_motion_plus) {
 		ActivateExtension();
 	}
 

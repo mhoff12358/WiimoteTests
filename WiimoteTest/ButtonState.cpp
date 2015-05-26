@@ -1,6 +1,10 @@
 #include "stdafx.h"
 #include "ButtonState.h"
 
+ButtonState::ButtonState() {
+	button_data[0] = 0;
+	button_data[1] = 0;
+}
 
 ButtonState::ButtonState(unsigned char* buffer)
 {
