@@ -158,6 +158,16 @@
     <Library Include="..\..\..\..\..\..\OculusSDK\LibOVR\Lib\x64\VS2013\libovr64.lib" />
     <Library Include="..\..\..\..\..\..\OculusSDK\LibOVR\Lib\x64\VS2013\libovr64d.lib" />
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="objshader.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="shaders.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

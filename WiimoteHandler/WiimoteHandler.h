@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <atomic>
 
 #include "stdafx.h"
 
@@ -12,6 +13,10 @@
 #include "Quaternion.h"
 
 struct WiimoteState {
+	Quaternion orientation;
+};
+
+struct WiimoteSensorState {
 	LinearAccelerationReading acceleration;
 	IRData ir_data;
 	ButtonState button_state;
@@ -108,6 +113,22 @@ public:
 	 */
 	void CheckForMotionPlus();
 
+	/**
+	 * Updates the current state based on the current sensor data
+	 */
+	void UpdateCurrentState();
+
+	/**
+	 * Stores the current state of the wiimote in the outward facing state so
+	 * that it can be accessed asynchronously
+	 */
+	void PushCurrentState();
+
+	/**
+	 * Gets the currently outwardly facing state
+	 */
+	WiimoteState GetCurrentState();
+
 private:
 	HANDLE pipe;
 	PHIDP_PREPARSED_DATA preparsed_data;
@@ -125,7 +146,8 @@ private:
 	bool continuous_reporting;
 
 	// Current state storage
-	WiimoteState current_data;
-	Quaternion current_orientation;
+	WiimoteSensorState current_data;
+	WiimoteState current_state;
 	std::array<float, 3> gravity;
+	std::atomic<WiimoteState> outward_facing_state;
 };

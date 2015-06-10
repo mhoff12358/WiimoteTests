@@ -1,6 +1,18 @@
 #include "WiimoteHandler.h"
 
 
+WiimoteHandler::WiimoteHandler()
+	: current_state({ Quaternion(0, 0, 0, 1) }),
+	gravity({ { 0, 0, -1 } })
+{
+	acceleration_calibration[0] = 0;
+	acceleration_calibration[1] = 0;
+	acceleration_calibration[2] = 0;
+	has_motion_plus = false;
+	has_extension = false;
+	PushCurrentState();
+}
+
 std::vector<HANDLE> WiimoteHandler::GetWiimoteHandles() {
 	std::vector<HANDLE> handles;
 
@@ -47,13 +59,6 @@ std::vector<HANDLE> WiimoteHandler::GetWiimoteHandles() {
 	}
 	reportLastError(L"ENUMERATING DEVICE INTERFACES");
 	return handles;
-}
-
-WiimoteHandler::WiimoteHandler() : current_orientation(0, 0, 0, 1), gravity({ { 0, 0, -1 } }) {
-	acceleration_calibration[0] = 0;
-	acceleration_calibration[1] = 0;
-	acceleration_calibration[2] = 0;
-	has_motion_plus = false;
 }
 
 void WiimoteHandler::SetPipe(HANDLE bluetooth_pipe) {
@@ -138,8 +143,7 @@ void WiimoteHandler::HandleInputReport(const InputReport& report) {
 		current_data.button_state = report.GetButtonState();
 		current_data.nunchuck_state = report.GetNunchuckState();
 		current_data.motion_plus_state = report.GetMotionPlusState();
-		LinearAcceleration acc(current_data.acceleration, acceleration_calibration, gravity_calibration);
-		std::cout << acc.direction[0] << "\t" << acc.direction[1] << "\t" << acc.direction[2] << std::endl;
+		//std::cout << acc.direction[0] << "\t" << acc.direction[1] << "\t" << acc.direction[2] << std::endl;
 		// Needs to be modified so it detects nunchuck information, as
 		// has_extension also detects the motion plus
 		if (has_extension) {
@@ -171,6 +175,8 @@ void WiimoteHandler::HandleInputReport(const InputReport& report) {
 		*/
 		//std::cout << mps.rotation[0] << std::endl;
 		//report.DumpToStdout();
+		UpdateCurrentState();
+		PushCurrentState();
 		break;
 	}
 	default:
@@ -263,4 +269,22 @@ void WiimoteHandler::SetHasExtension(bool extension_plugged_in) {
 	}
 
 	for (int i = 0; i < 2; i++) { nunchuck_stick_calibration[i] = -1; }
+}
+
+void WiimoteHandler::UpdateCurrentState() {
+	static int a = 0;
+	LinearAcceleration acc(current_data.acceleration, acceleration_calibration, gravity_calibration);
+	//std::cout << acc.magnitude << std::endl;
+	//std::cout << acc.acceleration[0] << "\t" << acc.acceleration[1] << "\t" << acc.acceleration[2] << std::endl;
+	if (abs(acc.magnitude - 1.0f) < 0.03f) {
+		current_state.orientation = Quaternion::RotationBetweenVectors(std::array<float, 3>({ { 0, 0, 1 } }), acc.direction);
+	}
+}
+
+void WiimoteHandler::PushCurrentState() {
+	outward_facing_state.store(current_state, std::memory_order_seq_cst);
+}
+
+WiimoteState WiimoteHandler::GetCurrentState() {
+	return outward_facing_state.load(std::memory_order_seq_cst);
 }

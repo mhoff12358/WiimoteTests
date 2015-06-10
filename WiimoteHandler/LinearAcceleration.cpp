@@ -6,7 +6,7 @@ LinearAcceleration::LinearAcceleration(const LinearAccelerationReading& raw_read
 {
 	magnitude = 0.0f;
 	for (int i = 0; i < 3; i++) {
-		acceleration[i] = static_cast<float>(raw_reading.acceleration[i] - acceleration_calibration[i]) / gravity_calibration[i];
+		acceleration[i] = static_cast<float>(raw_reading.acceleration[i] - acceleration_calibration[i]) / (gravity_calibration[i]);
 		magnitude += acceleration[i] * acceleration[i];
 	}
 	magnitude = sqrtf(magnitude);
