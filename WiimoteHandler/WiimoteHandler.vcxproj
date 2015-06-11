@@ -150,6 +150,7 @@
     <ClInclude Include="MotionPlusState.h" />
     <ClInclude Include="NunchuckState.h" />
     <ClInclude Include="OutputReport.h" />
+    <ClInclude Include="RotationalMotion.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="WiimoteEnums.h" />
@@ -166,6 +167,7 @@
     <ClCompile Include="MotionPlusState.cpp" />
     <ClCompile Include="NunchuckState.cpp" />
     <ClCompile Include="OutputReport.cpp" />
+    <ClCompile Include="RotationalMotion.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="WiimoteEnums.cpp" />
     <ClCompile Include="WiimoteHandler.cpp" />

@@ -60,6 +60,9 @@
     <ClInclude Include="WiimoteHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="RotationalMotion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BitHelpers.cpp">
@@ -99,6 +102,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="WiimoteHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RotationalMotion.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

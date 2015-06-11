@@ -1,15 +1,16 @@
 #pragma once
 
+#include "stdafx.h"
+
 #include <array>
 #include <atomic>
-
-#include "stdafx.h"
 
 #include "InputReport.h"
 #include "ErrorReporting.h"
 #include "BitHelpers.h"
 #include "OutputReport.h"
 #include "LinearAcceleration.h"
+#include "RotationalMotion.h"
 #include "Quaternion.h"
 
 struct WiimoteState {
@@ -91,6 +92,11 @@ public:
 	void CalibrateAccelerometer(unsigned char* calibration_data);
 
 	/**
+	 * Tells the motion plus to calibrate the next chance it gets
+	 */
+	void RequestCalibrateMotionPlus();
+
+	/**
 	 * Sets the desired data reporting method that the wiimote should be set to
 	 */
 	void SetDataReportingMethod(unsigned char report_mode, bool continuous);
@@ -136,17 +142,23 @@ private:
 
 	int acceleration_calibration[3];
 	int gravity_calibration[3];
+	int motion_plus_calibration[3];
 
 	int nunchuck_stick_calibration[2];
 
 	bool has_extension;
 	bool has_motion_plus;
+	std::atomic<bool> calibrate_motion_plus;
 
 	unsigned char current_report_mode;
 	bool continuous_reporting;
 
 	// Current state storage
+	WiimoteSensorState previous_data;
 	WiimoteSensorState current_data;
+	LARGE_INTEGER twice_previous_state_time;
+	LARGE_INTEGER previous_state_time;
+	LARGE_INTEGER current_state_time;
 	WiimoteState current_state;
 	std::array<float, 3> gravity;
 	std::atomic<WiimoteState> outward_facing_state;

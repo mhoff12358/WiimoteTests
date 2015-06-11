@@ -10,6 +10,7 @@ WiimoteHandler::WiimoteHandler()
 	acceleration_calibration[2] = 0;
 	has_motion_plus = false;
 	has_extension = false;
+	calibrate_motion_plus = false;
 	PushCurrentState();
 }
 
@@ -138,6 +139,10 @@ void WiimoteHandler::HandleInputReport(const InputReport& report) {
 		break;
 	}
 	case DATA_BUT_ACC_IR10_EXT6: {
+		previous_data = current_data;
+		twice_previous_state_time = previous_state_time;
+		previous_state_time = current_state_time;
+		QueryPerformanceCounter(&current_state_time);
 		current_data.acceleration = report.GetLinearAccelerationReading();
 		current_data.ir_data = report.GetIRData();
 		current_data.button_state = report.GetButtonState();
@@ -189,6 +194,10 @@ void WiimoteHandler::CalibrateAccelerometer(unsigned char* calibration_data) {
 	UnpackLinearAccelerationReadingCalibration(calibration_data, acceleration_calibration);
 	UnpackLinearAccelerationReadingCalibration(calibration_data+4, gravity_calibration);
 	for (int i = 0; i < 3; i++) { gravity_calibration[i] -= acceleration_calibration[i]; }
+}
+
+void WiimoteHandler::RequestCalibrateMotionPlus() {
+	calibrate_motion_plus = true;
 }
 
 void WiimoteHandler::ActivateIRCamera() {
@@ -276,7 +285,20 @@ void WiimoteHandler::UpdateCurrentState() {
 	LinearAcceleration acc(current_data.acceleration, acceleration_calibration, gravity_calibration);
 	//std::cout << acc.magnitude << std::endl;
 	//std::cout << acc.acceleration[0] << "\t" << acc.acceleration[1] << "\t" << acc.acceleration[2] << std::endl;
-	if (abs(acc.magnitude - 1.0f) < 0.03f) {
+	if (has_motion_plus) {
+		if (calibrate_motion_plus) {
+			calibrate_motion_plus = false;
+			for (int i = 0; i < 3; i++) {
+				motion_plus_calibration[i] = current_data.motion_plus_state.rotation[i];
+			}
+		}
+		RotationalMotion rot_acc(previous_data.motion_plus_state.rotation, motion_plus_calibration, previous_data.motion_plus_state.rotation_mode, (current_state_time.QuadPart - twice_previous_state_time.QuadPart) / 2);
+		if (previous_data.button_state.GetButtonPressed(B_MASK)) {
+			std::cout << rot_acc.rotation_in_radians[0] << std::endl;
+			current_state.orientation = current_state.orientation * Quaternion::RotationAboutAxis(AID_Z, rot_acc.rotation_in_radians[0]);
+		}
+	}
+	if ((abs(acc.magnitude - 1.0f) < 0.03f) && current_data.button_state.GetButtonPressed(A_MASK)) {
 		current_state.orientation = Quaternion::RotationBetweenVectors(std::array<float, 3>({ { 0, 0, 1 } }), acc.direction);
 	}
 }

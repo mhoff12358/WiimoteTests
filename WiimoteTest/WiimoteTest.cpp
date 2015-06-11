@@ -140,6 +140,9 @@ void dumpstuff(WiimoteHandler* wiimote) {
 				case 'D':
 					obj_orient = Quaternion(0, -0.15643446504023086901010531946717, 0, 0.98768834059513772619004024769344) * obj_orient;
 					break;
+				case 'F':
+					wiimote->RequestCalibrateMotionPlus();
+					break;
 				}
 			}
 		}
@@ -191,6 +194,7 @@ public:
 };
 
 int _tmain(int argc, _TCHAR* argv[]) {
+	RotationalMotion::PreparePerformanceCounter();
 	WiimoteHandler wiimote;
 
 	std::vector<HANDLE> wiimote_handles = WiimoteHandler::GetWiimoteHandles();
@@ -204,6 +208,7 @@ int _tmain(int argc, _TCHAR* argv[]) {
 		wiimote.SendOutputReport(OutputReportTemplates::set_leds);
 		wiimote.SetDataReportingMethod(0x37, false);
 		wiimote.SendOutputReport(OutputReportTemplates::request_calibration);
+		Sleep(1000);
 		wiimote.CheckForMotionPlus();
 		std::thread wiimote_update_thread(&WiimoteHandler::WatchForInputReports, &wiimote);
 		wiimote_update_thread.detach();
