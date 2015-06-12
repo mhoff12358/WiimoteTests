@@ -281,7 +281,8 @@ void WiimoteHandler::SetHasExtension(bool extension_plugged_in) {
 }
 
 void WiimoteHandler::UpdateCurrentState() {
-	static int a = 0;
+	static float angle = 0.0f;
+	static float seconds = 0.0f;
 	LinearAcceleration acc(current_data.acceleration, acceleration_calibration, gravity_calibration);
 	//std::cout << acc.magnitude << std::endl;
 	//std::cout << acc.acceleration[0] << "\t" << acc.acceleration[1] << "\t" << acc.acceleration[2] << std::endl;
@@ -294,9 +295,11 @@ void WiimoteHandler::UpdateCurrentState() {
 		}
 		RotationalMotion rot_acc(previous_data.motion_plus_state.rotation, motion_plus_calibration, previous_data.motion_plus_state.rotation_mode, (current_state_time.QuadPart - twice_previous_state_time.QuadPart) / 2);
 		if (previous_data.button_state.GetButtonPressed(B_MASK)) {
-			std::cout << rot_acc.rotation_in_radians[0] << std::endl;
 			current_state.orientation = current_state.orientation * Quaternion::RotationAboutAxis(AID_Z, rot_acc.rotation_in_radians[0]);
+			angle += rot_acc.rotation_in_radians[0];
+			seconds += static_cast<float>((current_state_time.QuadPart - twice_previous_state_time.QuadPart) / 2) * RotationalMotion::performance_freq_inv;
 		}
+		std::cout << angle << ",\t" << seconds << std::endl;
 	}
 	if ((abs(acc.magnitude - 1.0f) < 0.03f) && current_data.button_state.GetButtonPressed(A_MASK)) {
 		current_state.orientation = Quaternion::RotationBetweenVectors(std::array<float, 3>({ { 0, 0, 1 } }), acc.direction);

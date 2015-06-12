@@ -9,7 +9,7 @@ RotationalMotion::RotationalMotion(const int* raw_reading, const int* motion_plu
 			rotation_in_radians[i] *= 2000.0f / 440.0f;
 		}
 	}
-	std::cout << std::to_string(rotation_in_radians[0]) << std::endl;
+	std::cout << "TIME DURATION: " << time_duration * performance_freq_inv << std::endl;
 }
 
 
