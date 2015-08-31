@@ -284,8 +284,6 @@ void WiimoteHandler::UpdateCurrentState() {
 	static float angle = 0.0f;
 	static float seconds = 0.0f;
 	LinearAcceleration acc(current_data.acceleration, acceleration_calibration, gravity_calibration);
-	//std::cout << acc.magnitude << std::endl;
-	//std::cout << acc.acceleration[0] << "\t" << acc.acceleration[1] << "\t" << acc.acceleration[2] << std::endl;
 	if (has_motion_plus) {
 		if (calibrate_motion_plus) {
 			calibrate_motion_plus = false;
@@ -295,14 +293,32 @@ void WiimoteHandler::UpdateCurrentState() {
 		}
 		RotationalMotion rot_acc(previous_data.motion_plus_state.rotation, motion_plus_calibration, previous_data.motion_plus_state.rotation_mode, (current_state_time.QuadPart - twice_previous_state_time.QuadPart) / 2);
 		if (previous_data.button_state.GetButtonPressed(B_MASK)) {
-			current_state.orientation = current_state.orientation * Quaternion::RotationAboutAxis(AID_Z, rot_acc.rotation_in_radians[0]);
+			current_state.orientation = current_state.orientation * Quaternion::RotationAboutAxis(AID_Z, rot_acc.rotation_in_radians[0]) * Quaternion::RotationAboutAxis(AID_Y, rot_acc.rotation_in_radians[1]) * Quaternion::RotationAboutAxis(AID_X, rot_acc.rotation_in_radians[2]);
 			angle += rot_acc.rotation_in_radians[0];
 			seconds += static_cast<float>((current_state_time.QuadPart - twice_previous_state_time.QuadPart) / 2) * RotationalMotion::performance_freq_inv;
 		}
-		std::cout << angle << ",\t" << seconds << std::endl;
 	}
 	if ((abs(acc.magnitude - 1.0f) < 0.03f) && current_data.button_state.GetButtonPressed(A_MASK)) {
-		current_state.orientation = Quaternion::RotationBetweenVectors(std::array<float, 3>({ { 0, 0, 1 } }), acc.direction);
+		std::array<float, 3> current_down_vector = current_state.orientation.ApplyToVector(std::array<float, 3>({ { 0, 0, 1 } }));
+		//std::array<float, 3> current_down_vector = current_state.orientation.Inverse().ApplyToVector(std::array<float, 3>({ { 0, 0, 1 } }));
+		Quaternion rotation_to_apply = Quaternion::RotationBetweenVectors(current_down_vector, std::array<float, 3>({ acc.direction[0], acc.direction[1], acc.direction[2] }));
+		dump_vector(current_down_vector);
+		dump_vector(acc.direction);
+		if ((fabs(rotation_to_apply.ImaginaryMagnitude() - 1) > 0.001) || (fabs(rotation_to_apply.Magnitude() - 1) > 0.001)) {
+			std::cout << "BAD ROTATION TO APPLY:\t" << rotation_to_apply.ImaginaryMagnitude() << "\t" << rotation_to_apply.Magnitude() << std::endl;
+		}
+		std::cout.precision(6);
+		std::cout << std::fixed;
+		std::cout << "CURRENT STATE:\t" << current_state.orientation.x << " " << current_state.orientation.y << " " << current_state.orientation.z << " " << current_state.orientation.w << "\t" << current_state.orientation.Magnitude() << std::endl;
+		current_state.orientation = rotation_to_apply * current_state.orientation;
+		//current_state.orientation = rotation_to_apply.Inverse() * current_state.orientation;
+		std::cout << "ROTATION APPLY:\t" << rotation_to_apply.x << " " << rotation_to_apply.y << " " << rotation_to_apply.z << " " << rotation_to_apply.w << "\t" << rotation_to_apply.Magnitude() << std::endl;
+		std::cout << "POST STATE:\t" << current_state.orientation.x << " " << current_state.orientation.y << " " << current_state.orientation.z << " " << current_state.orientation.w << std::endl;
+
+		std::array<float, 3> new_down_vector = current_state.orientation.ApplyToVector(std::array<float, 3>({ { 0, 0, 1 } }));
+		std::cout << "New down vector, then acceleration" << std::endl;
+		dump_vector(new_down_vector);
+		dump_vector(acc.direction);
 	}
 }
 
