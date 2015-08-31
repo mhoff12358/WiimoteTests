@@ -299,26 +299,9 @@ void WiimoteHandler::UpdateCurrentState() {
 		}
 	}
 	if ((abs(acc.magnitude - 1.0f) < 0.03f) && current_data.button_state.GetButtonPressed(A_MASK)) {
-		std::array<float, 3> current_down_vector = current_state.orientation.ApplyToVector(std::array<float, 3>({ { 0, 0, 1 } }));
-		//std::array<float, 3> current_down_vector = current_state.orientation.Inverse().ApplyToVector(std::array<float, 3>({ { 0, 0, 1 } }));
+		std::array<float, 3> current_down_vector = current_state.orientation.Inverse().ApplyToVector(std::array<float, 3>({ { 0, 0, 1 } }));
 		Quaternion rotation_to_apply = Quaternion::RotationBetweenVectors(current_down_vector, std::array<float, 3>({ acc.direction[0], acc.direction[1], acc.direction[2] }));
-		dump_vector(current_down_vector);
-		dump_vector(acc.direction);
-		if ((fabs(rotation_to_apply.ImaginaryMagnitude() - 1) > 0.001) || (fabs(rotation_to_apply.Magnitude() - 1) > 0.001)) {
-			std::cout << "BAD ROTATION TO APPLY:\t" << rotation_to_apply.ImaginaryMagnitude() << "\t" << rotation_to_apply.Magnitude() << std::endl;
-		}
-		std::cout.precision(6);
-		std::cout << std::fixed;
-		std::cout << "CURRENT STATE:\t" << current_state.orientation.x << " " << current_state.orientation.y << " " << current_state.orientation.z << " " << current_state.orientation.w << "\t" << current_state.orientation.Magnitude() << std::endl;
-		current_state.orientation = rotation_to_apply * current_state.orientation;
-		//current_state.orientation = rotation_to_apply.Inverse() * current_state.orientation;
-		std::cout << "ROTATION APPLY:\t" << rotation_to_apply.x << " " << rotation_to_apply.y << " " << rotation_to_apply.z << " " << rotation_to_apply.w << "\t" << rotation_to_apply.Magnitude() << std::endl;
-		std::cout << "POST STATE:\t" << current_state.orientation.x << " " << current_state.orientation.y << " " << current_state.orientation.z << " " << current_state.orientation.w << std::endl;
-
-		std::array<float, 3> new_down_vector = current_state.orientation.ApplyToVector(std::array<float, 3>({ { 0, 0, 1 } }));
-		std::cout << "New down vector, then acceleration" << std::endl;
-		dump_vector(new_down_vector);
-		dump_vector(acc.direction);
+		current_state.orientation = current_state.orientation * rotation_to_apply.Inverse();
 	}
 }
 
