@@ -11,6 +11,9 @@ WiimoteHandler::WiimoteHandler()
 	has_motion_plus = false;
 	has_extension = false;
 	calibrate_motion_plus = false;
+
+	gravity_correction_scale = 1.0f;
+
 	PushCurrentState();
 }
 
@@ -300,7 +303,7 @@ void WiimoteHandler::UpdateCurrentState() {
 	}
 	if ((abs(acc.magnitude - 1.0f) < 0.03f) && current_data.button_state.GetButtonPressed(A_MASK)) {
 		std::array<float, 3> current_down_vector = current_state.orientation.Inverse().ApplyToVector(std::array<float, 3>({ { 0, 0, 1 } }));
-		Quaternion rotation_to_apply = Quaternion::RotationBetweenVectors(current_down_vector, std::array<float, 3>({ acc.direction[0], acc.direction[1], acc.direction[2] }));
+		Quaternion rotation_to_apply = Quaternion::RotationBetweenVectors(current_down_vector, std::array<float, 3>({ acc.direction[0], acc.direction[1], acc.direction[2] }), gravity_correction_scale);
 		current_state.orientation = current_state.orientation * rotation_to_apply.Inverse();
 	}
 }
@@ -311,4 +314,8 @@ void WiimoteHandler::PushCurrentState() {
 
 WiimoteState WiimoteHandler::GetCurrentState() {
 	return outward_facing_state.load(std::memory_order_seq_cst);
+}
+
+void WiimoteHandler::SetGravityCorrectionScale(float new_gravity_correction_scale) {
+	gravity_correction_scale = new_gravity_correction_scale;
 }

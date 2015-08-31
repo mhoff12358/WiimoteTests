@@ -188,6 +188,7 @@ int _tmain(int argc, _TCHAR* argv[]) {
 		//return 1;
 	}
 	else {
+		wiimote.SetGravityCorrectionScale(0.1f);
 		wiimote.SetPipe(wiimote_handles[0]);
 		wiimote.ActivateIRCamera();
 		wiimote.SendOutputReport(OutputReportTemplates::status_request);

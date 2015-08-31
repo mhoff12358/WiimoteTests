@@ -135,17 +135,26 @@ public:
 	 */
 	WiimoteState GetCurrentState();
 
+	/**
+	 * Sets how rapidly the orientation is corrected based on the gravity vector
+	 */
+	void SetGravityCorrectionScale(float new_gravity_correction_scale);
+
 private:
 	HANDLE pipe;
 	PHIDP_PREPARSED_DATA preparsed_data;
 	HIDP_CAPS capabilities;
 
+	// Handler calibration values
+	float gravity_correction_scale;
+
+	// Calibration values of the wiimote itself
 	int acceleration_calibration[3];
 	int gravity_calibration[3];
 	int motion_plus_calibration[3];
-
 	int nunchuck_stick_calibration[2];
 
+	// Known values about the state of the wiimote
 	bool has_extension;
 	bool has_motion_plus;
 	std::atomic<bool> calibrate_motion_plus;
