@@ -11,10 +11,12 @@
 #include "OutputReport.h"
 #include "LinearAcceleration.h"
 #include "RotationalMotion.h"
+#include "LocationAndVelocity.h"
 #include "Quaternion.h"
 
 struct WiimoteState {
 	Quaternion orientation;
+	LocationAndVelocity location_and_velocity;
 };
 
 struct WiimoteSensorState {
@@ -97,6 +99,12 @@ public:
 	void RequestCalibrateMotionPlus();
 
 	/**
+	 * Fully rezeroes all undetectable values. Currently doesn't but should
+	 * assume the wiimote is pointing forward, and sets the velocity to 0.
+	 */
+	void Rezero();
+
+	/**
 	 * Sets the desired data reporting method that the wiimote should be set to
 	 */
 	void SetDataReportingMethod(unsigned char report_mode, bool continuous);
@@ -145,8 +153,15 @@ private:
 	PHIDP_PREPARSED_DATA preparsed_data;
 	HIDP_CAPS capabilities;
 
+	// Flags that can be set asynchronously to signal functionality that should
+	// happen during the next update loop
+	std::atomic<bool> flag_rezero;
+
 	// Handler calibration values
 	float gravity_correction_scale;
+	float velocity_decay_scale;
+	float max_acceleration;
+	float performance_freq_inv;
 
 	// Calibration values of the wiimote itself
 	int acceleration_calibration[3];

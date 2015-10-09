@@ -63,6 +63,15 @@
     <ClInclude Include="RotationalMotion.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="AuthenticatePairing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Recording.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LocationAndVelocity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BitHelpers.cpp">
@@ -105,6 +114,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="RotationalMotion.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AuthenticatePairing.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Recording.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LocationAndVelocity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

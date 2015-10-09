@@ -16,6 +16,8 @@
 #include "BeginDirectx.h"
 #include "ObjLoader.h"
 
+#include "AuthenticatePairing.h"
+
 Entity makewiimote(const VRBackendBasics& graphics_objects) {
 	std::vector<Vertex> vertices;
 	VertexType vertex_type = VertexType(std::vector<D3D11_INPUT_ELEMENT_DESC>({
@@ -182,6 +184,10 @@ void dumpstuff(WiimoteHandler* wiimote) {
 int _tmain(int argc, _TCHAR* argv[]) {
 	RotationalMotion::PreparePerformanceCounter();
 	WiimoteHandler wiimote;
+
+	//if (!AuthWiimote()) {
+	//	return 1;
+	//}
 
 	std::vector<HANDLE> wiimote_handles = WiimoteHandler::GetWiimoteHandles();
 	if (wiimote_handles.size() < 1) {

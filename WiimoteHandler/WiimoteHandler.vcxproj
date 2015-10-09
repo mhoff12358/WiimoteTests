@@ -140,6 +140,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AuthenticatePairing.h" />
     <ClInclude Include="BitHelpers.h" />
     <ClInclude Include="ButtonState.h" />
     <ClInclude Include="ErrorReporting.h" />
@@ -147,9 +148,11 @@
     <ClInclude Include="IRData.h" />
     <ClInclude Include="LinearAcceleration.h" />
     <ClInclude Include="LinearAccelerationReading.h" />
+    <ClInclude Include="LocationAndVelocity.h" />
     <ClInclude Include="MotionPlusState.h" />
     <ClInclude Include="NunchuckState.h" />
     <ClInclude Include="OutputReport.h" />
+    <ClInclude Include="Recording.h" />
     <ClInclude Include="RotationalMotion.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
@@ -157,6 +160,7 @@
     <ClInclude Include="WiimoteHandler.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AuthenticatePairing.cpp" />
     <ClCompile Include="BitHelpers.cpp" />
     <ClCompile Include="ButtonState.cpp" />
     <ClCompile Include="ErrorReporting.cpp" />
@@ -164,9 +168,11 @@
     <ClCompile Include="IRData.cpp" />
     <ClCompile Include="LinearAcceleration.cpp" />
     <ClCompile Include="LinearAccelerationReading.cpp" />
+    <ClCompile Include="LocationAndVelocity.cpp" />
     <ClCompile Include="MotionPlusState.cpp" />
     <ClCompile Include="NunchuckState.cpp" />
     <ClCompile Include="OutputReport.cpp" />
+    <ClCompile Include="Recording.cpp" />
     <ClCompile Include="RotationalMotion.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="WiimoteEnums.cpp" />

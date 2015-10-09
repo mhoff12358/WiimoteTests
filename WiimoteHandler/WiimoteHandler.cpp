@@ -8,11 +8,19 @@ WiimoteHandler::WiimoteHandler()
 	acceleration_calibration[0] = 0;
 	acceleration_calibration[1] = 0;
 	acceleration_calibration[2] = 0;
+	gravity_calibration[0] = 1;
+	gravity_calibration[1] = 1;
+	gravity_calibration[2] = 1;
 	has_motion_plus = false;
 	has_extension = false;
 	calibrate_motion_plus = false;
 
 	gravity_correction_scale = 1.0f;
+	velocity_decay_scale = 0.99f;
+	max_acceleration = 2.0f;
+	LARGE_INTEGER perf_freq;
+	QueryPerformanceFrequency(&perf_freq);
+	performance_freq_inv = 1.0f / static_cast<float>(perf_freq.QuadPart);
 
 	PushCurrentState();
 }
@@ -46,8 +54,9 @@ std::vector<HANDLE> WiimoteHandler::GetWiimoteHandles() {
 			if (reportLastError(L"OPEN DEVICE FILE")) {
 				HIDD_ATTRIBUTES device_attrib;
 				if (HidD_GetAttributes(device_file, &device_attrib)) {
-					std::cout << "HI" << std::endl;
 					if (device_attrib.VendorID == wiimoteVendorID && device_attrib.ProductID == wiimoteProductID) {
+						std::cout << "HANDLE ADDED" << std::endl;
+						std::cout << device_detail->DevicePath << std::endl;
 						handles.push_back(device_file);
 					}
 				}
@@ -203,6 +212,10 @@ void WiimoteHandler::RequestCalibrateMotionPlus() {
 	calibrate_motion_plus = true;
 }
 
+void WiimoteHandler::Rezero() {
+	flag_rezero = true;
+}
+
 void WiimoteHandler::ActivateIRCamera() {
 	SendOutputReport(OutputReportTemplates::ir_enable_1);
 	Sleep(75);
@@ -284,28 +297,40 @@ void WiimoteHandler::SetHasExtension(bool extension_plugged_in) {
 }
 
 void WiimoteHandler::UpdateCurrentState() {
-	static float angle = 0.0f;
-	static float seconds = 0.0f;
-	LinearAcceleration acc(current_data.acceleration, acceleration_calibration, gravity_calibration);
+	if (flag_rezero) {
+		flag_rezero = false;
+		current_state.location_and_velocity.velocity = { { 0, 0, 0 } };
+		current_state.location_and_velocity.location = { { 0, 0, 0 } };
+	}
+
+	float previous_frame_duration = static_cast<float>((current_state_time.QuadPart - twice_previous_state_time.QuadPart) / 2) * performance_freq_inv;
+	LinearAcceleration acc(previous_data.acceleration, acceleration_calibration, gravity_calibration, max_acceleration);
 	if (has_motion_plus) {
 		if (calibrate_motion_plus) {
 			calibrate_motion_plus = false;
 			for (int i = 0; i < 3; i++) {
-				motion_plus_calibration[i] = current_data.motion_plus_state.rotation[i];
+				motion_plus_calibration[i] = previous_data.motion_plus_state.rotation[i];
 			}
 		}
-		RotationalMotion rot_acc(previous_data.motion_plus_state.rotation, motion_plus_calibration, previous_data.motion_plus_state.rotation_mode, (current_state_time.QuadPart - twice_previous_state_time.QuadPart) / 2);
-		if (previous_data.button_state.GetButtonPressed(B_MASK)) {
-			current_state.orientation = current_state.orientation * Quaternion::RotationAboutAxis(AID_Z, rot_acc.rotation_in_radians[0]) * Quaternion::RotationAboutAxis(AID_Y, rot_acc.rotation_in_radians[1]) * Quaternion::RotationAboutAxis(AID_X, rot_acc.rotation_in_radians[2]);
-			angle += rot_acc.rotation_in_radians[0];
-			seconds += static_cast<float>((current_state_time.QuadPart - twice_previous_state_time.QuadPart) / 2) * RotationalMotion::performance_freq_inv;
-		}
+		RotationalMotion rot_acc(previous_data.motion_plus_state.rotation, motion_plus_calibration, previous_data.motion_plus_state.rotation_mode, previous_frame_duration);
+		//if (previous_data.button_state.GetButtonPressed(B_MASK)) {
+		current_state.orientation = current_state.orientation * Quaternion::RotationAboutAxis(AID_Z, rot_acc.rotation_in_radians[0]) * Quaternion::RotationAboutAxis(AID_Y, rot_acc.rotation_in_radians[1]) * Quaternion::RotationAboutAxis(AID_X, rot_acc.rotation_in_radians[2]);
+		//}
 	}
-	if ((abs(acc.magnitude - 1.0f) < 0.03f) && current_data.button_state.GetButtonPressed(A_MASK)) {
+	//if ((abs(acc.magnitude - 1.0f) < 0.03f) && current_data.button_state.GetButtonPressed(A_MASK)) {
+	if ((abs(acc.magnitude - 1.0f) < 0.03f)) {
 		std::array<float, 3> current_down_vector = current_state.orientation.Inverse().ApplyToVector(std::array<float, 3>({ { 0, 0, 1 } }));
 		Quaternion rotation_to_apply = Quaternion::RotationBetweenVectors(current_down_vector, std::array<float, 3>({ acc.direction[0], acc.direction[1], acc.direction[2] }), gravity_correction_scale);
 		current_state.orientation = current_state.orientation * rotation_to_apply.Inverse();
 	}
+	acc.RemoveGravity(current_state.orientation);
+	current_state.location_and_velocity.UpdateWithAcceleration(acc, previous_frame_duration);
+	current_state.location_and_velocity.ApplyVelocityDecay(velocity_decay_scale);
+	std::cout << "Frame duration: " << previous_frame_duration << std::endl;
+	std::cout << "acceleration sans gravity:\t" << acc.magnitude << "\t:" << acc.direction[0] << "\t" << acc.direction[1] << "\t" << acc.direction[2] << std::endl;
+	std::cout << "Velocity:\t" << current_state.location_and_velocity.velocity[0] << "\t"
+		<< current_state.location_and_velocity.velocity[1] << "\t"
+		<< current_state.location_and_velocity.velocity[2] << std::endl;
 }
 
 void WiimoteHandler::PushCurrentState() {
